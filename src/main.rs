@@ -15,10 +15,22 @@ fn main() {
         let input = line.unwrap().as_slice().split(' ');
         let path = find_path(&input[0], &input[1]);
         println!("{}", path);
+    }*/
+    print_graph(graph)
+}
+
+fn print_graph(graph: HashMap<String, Vec<String>>) {
+    for (node, neighbors) in graph.iter() {
+        let mut neighbor_string: String = String::new();
+        for neighbor in neighbors.iter() {
+            if neighbor_string.len() > 0 {
+                neighbor_string = format!("{}, {}", neighbor_string, neighbor);
+            } else {
+                neighbor_string = format!("{}", neighbor);
+            }
+        }
+        println!("{}->[{}]", node, neighbor_string);
     }
-*/  for (node, neighbors) in graph.iter() {
-        println!("{}, {:?}", node, neighbors);  
-    }  
 }
 
 
