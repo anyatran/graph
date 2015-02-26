@@ -35,6 +35,11 @@ fn print_graph(graph: HashMap<String, Vec<String>>) {
 
 
 // read the file and load the graph
+// TODO: instead of panic!, we could change function to return a
+// Result<HashMap<String, Vec<String>>, so on a good load, it returns
+// Ok(graph), on bad it returns Err("some error message"). Then in main() we could
+// match over loading the graph and handle the error there, allowing us to test
+// the error message output.
 fn load_graph<R: Reader> (mut content: io::BufferedReader<R>) -> HashMap<String, Vec<String>> {
     let mut graph_result: HashMap<String, Vec<String>> = HashMap::new();
     for line in content.lines() {
