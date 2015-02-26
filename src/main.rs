@@ -35,10 +35,10 @@ fn load_graph<R: Reader> (mut content: io::BufferedReader<R>) -> HashMap<String,
                 let neighbors: Vec<String> = n.iter().map(|&x| x.trim_matches('\n').to_string()).collect();
                 match graph_result.entry(node_name.to_string()) {
                     Vacant(entry) => { entry.insert(neighbors); },
-                    Occupied(entry) => panic!("broken graph"),
+                    Occupied(entry) => panic!("Duplicate entry: {}", node_name),
                 }
             },
-            Err(_) => println!("error"),
+            Err(_) => println!("Unrecoverable error while reading graph file"),
         };
     }
     graph_result
