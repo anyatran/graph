@@ -30,9 +30,9 @@ fn load_graph<R: Reader> (mut content: io::BufferedReader<R>) -> HashMap<String,
             Ok(l) => {
                 // TODO: could we iterate over this while building graph?
                 let mut node: Vec<&str> = l.as_slice().split(' ').collect();
-                let node_name: &str = *node.iter().nth(0).unwrap();
+                let node_name: &str = node.iter().nth(0).unwrap().trim_matches('\n');
                 let n = node.as_slice().slice_from(1);
-                let neighbors: Vec<String> = n.iter().map(|&x| x.to_string()).collect();
+                let neighbors: Vec<String> = n.iter().map(|&x| x.trim_matches('\n').to_string()).collect();
                 match graph_result.entry(node_name.to_string()) {
                     Vacant(entry) => { entry.insert(neighbors); },
                     Occupied(entry) => panic!("broken graph"),
