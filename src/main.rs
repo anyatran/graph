@@ -1,25 +1,33 @@
+//! provides a path query interface to a graph from a file provided on the command line
+#![allow(unstable)]
+
 use std::os;
 use std::io;
 use std::collections::HashMap;
 use std::collections::hash_map::Entry::{Occupied, Vacant};
-use std::collections::binary_heap::BinaryHeap;
+
 fn main() {
+
     let file = match os::args().tail().first() {
         Some(arg) => io::File::open(&Path::new(arg)),
         None      => panic!("Must provide a file"),   
     };
 
-    let mut file_buff = io::BufferedReader::new(file);
-    let mut graph: Box<HashMap<String, Vec<String>>> = Box::new(load_graph(file_buff)); 
+    let file_buff = io::BufferedReader::new(file);
+    let graph: Box<HashMap<String, Vec<String>>> = Box::new(load_graph(file_buff)); 
+
     io::stdio::print("-> ");
     for line in io::stdin().lock().lines() {
+
         let input_line: String = line.unwrap();
         let input_split = input_line.as_slice().split(' ');
-        if (input_split.clone().count() != 2) {
+
+        if input_split.clone().count() != 2 {
             println!("Must provide only start and end");
             io::stdio::print("-> ");
             continue;
         }
+
         let input: Vec<&str> = input_split.collect();
         
         let path = match find_path(&*graph, input[0].to_string(), input[1].trim_matches('\n').to_string()) {
@@ -28,11 +36,13 @@ fn main() {
                 println!("No path from {} to {}", input[0], input[1]); 
                 io::stdio::print("-> ");
                 continue;
-                },  
+            },  
         };
+
         for n in path.iter() {
             io::stdio::print(format!("{} ", n).as_slice());
         }
+
         io::stdio::print("\n");
         io::stdio::print("-> ");
     }
@@ -53,13 +63,11 @@ fn load_graph<R: Reader> (mut content: io::BufferedReader<R>) -> HashMap<String,
         match line {
             Ok(l) => {
                 let mut node: Vec<&str> = l.as_slice().split(' ').collect();
-                //let node_name: &str = node.iter().nth(0).unwrap().trim_matches('\n');
-                //let n = node.as_slice().slice_from(1);
                 let node_name: &str = node.remove(0);
                 let neighbors: Vec<String> = node.iter().map(|&x| x.trim_matches('\n').to_string()).collect();
                 match graph_result.entry(node_name.to_string()) {
                     Vacant(entry) => { entry.insert(neighbors); },
-                    Occupied(entry) => panic!("Duplicate entry: {}", node_name),
+                    Occupied(_) => panic!("Duplicate entry: {}", node_name),
                 }
             },
             Err(_) => println!("Unrecoverable error while reading graph file"),
@@ -68,17 +76,18 @@ fn load_graph<R: Reader> (mut content: io::BufferedReader<R>) -> HashMap<String,
     graph_result
 }
 
-///find a path in a given graph
-fn find_path(mut graph: &HashMap<String, Vec<String>>, start: String, end: String) -> Option<Vec<String>> {
+/// Attempts to find a path in the given graph from the starting position to the end position via
+/// depth-first search. If a path is found, `Some(Vec<String>)` containing the path is returned.
+/// Otherwise, `None` is returned.
+fn find_path(graph: &HashMap<String, Vec<String>>, start: String, end: String) -> Option<Vec<String>> {
     let mut current: String = start;
     let mut todo: Vec<String> = vec![];
     let mut visited: Vec<String> = vec![];
     loop {
-        if (current.as_slice() == end.as_slice()) {
+        if current.as_slice() == end.as_slice() {
             visited.push(current);
             break;
         }
-        //let neighbors = graph.get(&current).unwrap();
         let neighbors = match graph.get(&current) {
             Some(n) => n,
             None => {
@@ -86,12 +95,12 @@ fn find_path(mut graph: &HashMap<String, Vec<String>>, start: String, end: Strin
             }
         }; 
         for n in neighbors.iter() {
-            if (visited.as_slice().contains(n)) {
+            if visited.as_slice().contains(n) {
                 continue;
             }
             todo.push(n.clone());
         }
-        if (!visited.as_slice().contains(&current)) {
+        if !visited.as_slice().contains(&current) {
             visited.push(current); 
         }    
         current  = todo.remove(0);
@@ -99,12 +108,3 @@ fn find_path(mut graph: &HashMap<String, Vec<String>>, start: String, end: Strin
     }
     return Some(visited);
 }
-  
-
-
-
-
-
-
-
-
