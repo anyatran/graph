@@ -14,7 +14,10 @@ fn main() {
     };
 
     let file_buff = io::BufferedReader::new(file);
-    let graph: Box<HashMap<String, Vec<String>>> = Box::new(load_graph(file_buff)); 
+    let graph: Box<HashMap<String, Vec<String>>> = match load_graph(file_buff) {
+        Ok(g) => Box::new(g),
+        Err(e) => panic!("{}", e),
+    };
 
     io::stdio::print("-> ");
     for line in io::stdin().lock().lines() {
@@ -51,29 +54,28 @@ fn main() {
 
 
 
-// read the file and load the graph
-// TODO: instead of panic!, we could change function to return a
-// Result<HashMap<String, Vec<String>>, so on a good load, it returns
-// Ok(graph), on bad it returns Err("some error message"). Then in main() we could
-// match over loading the graph and handle the error there, allowing us to test
-// the error message output.
-fn load_graph<R: Reader> (mut content: io::BufferedReader<R>) -> HashMap<String, Vec<String>> {
+/// build a graph from the given buffer. Returns Ok(HashMap<String, Vec<String>>) on success,
+/// otherwise returns Err(String) containing an error message.
+fn load_graph<'a, R: Reader> (mut content: io::BufferedReader<R>) -> Result<HashMap<String, Vec<String>>, String> {
     let mut graph_result: HashMap<String, Vec<String>> = HashMap::new();
     for line in content.lines() {
         match line {
             Ok(l) => {
+                // line format: <node><space><neighbor1><space><neighbor2>...<neighborN>
                 let mut node: Vec<&str> = l.as_slice().split(' ').collect();
                 let node_name: &str = node.remove(0);
                 let neighbors: Vec<String> = node.iter().map(|&x| x.trim_matches('\n').to_string()).collect();
                 match graph_result.entry(node_name.to_string()) {
                     Vacant(entry) => { entry.insert(neighbors); },
-                    Occupied(_) => panic!("Duplicate entry: {}", node_name),
+                    Occupied(_) => {
+                        return Err(format!("Duplicate entry: {}", node_name));
+                    },
                 }
             },
-            Err(_) => println!("Unrecoverable error while reading graph file"),
+            Err(_) => { return Err("Unrecoverable error whiel reading graph file".to_string()); },
         };
     }
-    graph_result
+    Ok(graph_result)
 }
 
 /// Attempts to find a path in the given graph from the starting position to the end position via
