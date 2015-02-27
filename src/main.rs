@@ -33,7 +33,7 @@ fn main() {
 
         let input: Vec<&str> = input_split.collect();
         
-        let path = match find_path(&*graph, input[0].to_string(), input[1].trim_matches('\n').to_string()) {
+        let path: String = match find_path(&*graph, input[0].to_string(), input[1].trim_matches('\n').to_string()) {
             Some(p) => p,
             None => { 
                 println!("No path from {} to {}", input[0], input[1]); 
@@ -42,11 +42,8 @@ fn main() {
             },  
         };
 
-        for n in path.iter() {
-            io::stdio::print(format!("{} ", n).as_slice());
-        }
+        println!("{}", path);
 
-        io::stdio::print("\n");
         io::stdio::print("-> ");
     }
     
@@ -79,9 +76,9 @@ fn load_graph<'a, R: Reader> (mut content: io::BufferedReader<R>) -> Result<Hash
 }
 
 /// Attempts to find a path in the given graph from the starting position to the end position via
-/// depth-first search. If a path is found, `Some(Vec<String>)` containing the path is returned.
+/// depth-first search. If a path is found, `Some(String)` containing the path is returned.
 /// Otherwise, `None` is returned.
-fn find_path(graph: &HashMap<String, Vec<String>>, start: String, end: String) -> Option<Vec<String>> {
+fn find_path(graph: &HashMap<String, Vec<String>>, start: String, end: String) -> Option<String> {
     let mut current: String = start;
     let mut todo: Vec<String> = vec![];
     let mut visited: Vec<String> = vec![];
@@ -108,5 +105,6 @@ fn find_path(graph: &HashMap<String, Vec<String>>, start: String, end: String) -
         current  = todo.remove(0);
         
     }
-    return Some(visited);
+    let path_string: String = visited.as_slice().connect(" ");
+    Some(path_string)
 }
