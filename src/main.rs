@@ -2,7 +2,7 @@ use std::os;
 use std::io;
 use std::collections::HashMap;
 use std::collections::hash_map::Entry::{Occupied, Vacant};
-
+use std::collections::binary_heap::BinaryHeap;
 fn main() {
     let file = match os::args().tail().first() {
         Some(arg) => io::File::open(&Path::new(arg)),
@@ -10,16 +10,24 @@ fn main() {
     };
 
     let mut file_buff = io::BufferedReader::new(file);
-    let mut graph: HashMap<String, Vec<String>> = load_graph(file_buff); //////
-/*    for line in io::stdin().lock().lines() {
-        let input = line.unwrap().as_slice().split(' ');
-        let path = find_path(&input[0], &input[1]);
-        println!("{}", path);
-    }*/
-    print_graph(graph)
+    let mut graph: Box<HashMap<String, Vec<String>>> = Box::new(load_graph(file_buff)); //////
+    print_graph(&*graph);
+    io::stdio::print("->");
+     for line in io::stdin().lock().lines() {
+        //io::stdio::print("->");
+        println!("enter");
+        let input_line: String = line.unwrap();
+        
+        let input: Vec<&str> = input_line.as_slice().split(' ').collect();
+        
+        let path = find_path(&*graph, input[0].to_string(), input[1].trim_matches('\n').to_string());
+        println!("{:?}", path);
+        io::stdio::print("->");
+    }
+    
 }
 
-fn print_graph(graph: HashMap<String, Vec<String>>) {
+fn print_graph(graph: &HashMap<String, Vec<String>>) {
     for (node, neighbors) in graph.iter() {
         let mut neighbor_string: String = String::new();
         for neighbor in neighbors.iter() {
@@ -60,3 +68,44 @@ fn load_graph<R: Reader> (mut content: io::BufferedReader<R>) -> HashMap<String,
     }
     graph_result
 }
+
+///find a path in a given graph
+fn find_path(mut graph: &HashMap<String, Vec<String>>, start: String, end: String) -> Vec<String> {
+    println!("in find_path");
+    let mut current: String = start;
+    let mut todo: Vec<String> = vec![];
+    let mut visited: Vec<String> = vec![];
+    loop {
+        
+        println!("current: {}", current);
+        println!("todo: {:?}", todo);
+        println!("visited: {:?}", visited);
+        if (current.as_slice() == end.as_slice()) {
+            visited.push(current);
+            break;
+        }
+        let neighbors = graph.get(&current).unwrap();
+        for n in neighbors.iter() {
+        /////// duplicates
+            if (visited.as_slice().contains(n)) {
+                continue;
+            }
+            todo.push(n.clone());
+        }
+        if (!visited.as_slice().contains(&current)) {
+            visited.push(current); 
+        }    
+        current  = todo.remove(0);
+        
+    }
+    return visited;
+}
+  
+
+
+
+
+
+
+
+
