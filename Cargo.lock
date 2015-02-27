@@ -1,4 +1,4 @@
 [root]
-name = "graph"
+name = "graph_traversal"
 version = "0.0.1"
 
