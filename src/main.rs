@@ -14,10 +14,22 @@ fn main() {
     io::stdio::print("-> ");
     for line in io::stdin().lock().lines() {
         let input_line: String = line.unwrap();
+        let input_split = input_line.as_slice().split(' ');
+        if (input_split.clone().count() != 2) {
+            println!("Must provide only start and end");
+            io::stdio::print("-> ");
+            continue;
+        }
+        let input: Vec<&str> = input_split.collect();
         
-        let input: Vec<&str> = input_line.as_slice().split(' ').collect();
-        
-        let path = find_path(&*graph, input[0].to_string(), input[1].trim_matches('\n').to_string());
+        let path = match find_path(&*graph, input[0].to_string(), input[1].trim_matches('\n').to_string()) {
+            Some(p) => p,
+            None => { 
+                println!("No path from {} to {}", input[0], input[1]); 
+                io::stdio::print("-> ");
+                continue;
+                },  
+        };
         for n in path.iter() {
             io::stdio::print(format!("{} ", n).as_slice());
         }
@@ -57,7 +69,7 @@ fn load_graph<R: Reader> (mut content: io::BufferedReader<R>) -> HashMap<String,
 }
 
 ///find a path in a given graph
-fn find_path(mut graph: &HashMap<String, Vec<String>>, start: String, end: String) -> Vec<String> {
+fn find_path(mut graph: &HashMap<String, Vec<String>>, start: String, end: String) -> Option<Vec<String>> {
     let mut current: String = start;
     let mut todo: Vec<String> = vec![];
     let mut visited: Vec<String> = vec![];
@@ -66,7 +78,13 @@ fn find_path(mut graph: &HashMap<String, Vec<String>>, start: String, end: Strin
             visited.push(current);
             break;
         }
-        let neighbors = graph.get(&current).unwrap();
+        //let neighbors = graph.get(&current).unwrap();
+        let neighbors = match graph.get(&current) {
+            Some(n) => n,
+            None => {
+                return None;
+            }
+        }; 
         for n in neighbors.iter() {
             if (visited.as_slice().contains(n)) {
                 continue;
@@ -79,7 +97,7 @@ fn find_path(mut graph: &HashMap<String, Vec<String>>, start: String, end: Strin
         current  = todo.remove(0);
         
     }
-    return visited;
+    return Some(visited);
 }
   
 
